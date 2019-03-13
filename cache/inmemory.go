@@ -5,7 +5,6 @@ import "sync"
 
 //定义缓存模型
 type inMemoryCache struct {
-
 	//用于存放 key  value 的map
 	c map[string][]byte
 
@@ -48,13 +47,31 @@ func (c *inMemoryCache) Get(k string) ([]byte, error) {
 	return c.c[k], nil
 }
 
+//从缓存中删除key = k的值
 func (c *inMemoryCache) Del(k string) error {
+	//加锁
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+
+	//从map中取出对应key的value
 	v, exist := c.c[k]
+
+	//存在该值则直接调用删除方法，该删除方法是由Stat提供，由于cache模型匿名聚合了Stat所以可以直接调用
+	//调用的原因在于更新stat状态信息
+	//删除map中key=k的值
 	if exist {
 		delete(c.c, k)
 		c.del(k, v)
 	}
 	return nil
+}
+
+//获取缓存当前状态
+func (c *inMemoryCache) GetStat() Stat {
+	return c.Stat
+}
+
+//初始化，类似于Java的构造函数
+func newInMemoryCache() *inMemoryCache {
+	return &inMemoryCache{make(map[string][]byte), sync.RWMutex{}, Stat{}}
 }
