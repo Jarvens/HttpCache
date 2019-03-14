@@ -25,7 +25,7 @@ func (c *inMemoryCache) Set(k string, v []byte) error {
 	//根据key查询map
 	tmp, exist := c.c[k]
 
-	//存在，删除该值，因为map如果存在该值不会覆盖
+	//存在将stat 状态  keySize -1 valueSize -1
 	if exist {
 		c.del(k, tmp)
 	}
